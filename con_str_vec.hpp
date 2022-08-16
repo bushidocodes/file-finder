@@ -9,11 +9,6 @@ typedef void (*con_str_vec_foreach_cb)(char *);
 
 struct con_str_vec
 {
-	char **buffer;
-	size_t length;
-	size_t capacity;
-	pthread_mutex_t lock;
-
 	con_str_vec(size_t capacity)
 	{
 		if (capacity == 0)
@@ -55,6 +50,11 @@ struct con_str_vec
 
 		pthread_mutex_unlock(&this->lock);
 		pthread_mutex_destroy(&this->lock);
+	}
+
+	size_t getLength()
+	{
+		return length;
 	}
 
 	inline int
@@ -118,4 +118,10 @@ struct con_str_vec
 		foreach_del_nolock(cb);
 		pthread_mutex_unlock(&lock);
 	}
+
+private:
+	char **buffer;
+	size_t length;
+	size_t capacity;
+	pthread_mutex_t lock;
 };

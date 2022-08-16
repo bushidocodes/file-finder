@@ -17,14 +17,14 @@ dumper_main(void *argument)
 	while (true)
 	{
 		sleep(quantum);
-		pthread_mutex_lock(&matches.lock);
-		bool did_print = matches.length > 0;
-		if (did_print)
+		bool not_empty = matches.getLength() > 0;
+		if (not_empty)
 			std::cout << '\n';
 
-		matches.foreach_del_nolock((con_str_vec_foreach_cb)puts);
-		pthread_mutex_unlock(&matches.lock);
-		if (did_print)
+		matches.foreach_del([](char *val)
+							{ std::cout << val << '\n'; });
+
+		if (not_empty)
 			std::cout << ">> ";
 		std::cout.flush();
 	}
