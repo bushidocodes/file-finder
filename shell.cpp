@@ -2,20 +2,21 @@
 
 #include <errno.h>
 #include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <pthread.h>
 
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+
 #include "con_str_vec.hpp"
 
 extern struct con_str_vec matches;
 
 void shell_dump()
 {
-	con_str_vec_foreach_del(&matches, (con_str_vec_foreach_cb)puts);
+	con_str_vec_foreach_del(&matches, [](char *arg) -> void
+							{ std::cout << arg << "\n"; });
 }
 
 void *
@@ -24,7 +25,7 @@ shell_main(void *argument)
 	std::cout << ">> ";
 
 	char *line = nullptr;
-	size_t len = 0;
+	std::size_t len = 0;
 	ssize_t nread = 0;
 	while ((nread = getline(&line, &len, stdin)) != -1)
 	{
