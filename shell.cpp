@@ -16,7 +16,6 @@ shell_main(void *argument)
 	std::string line;
 	while ((std::cin >> line))
 	{
-
 		if (line.compare("dump") == 0)
 		{
 			matches.foreach_del([](char *arg) -> void

@@ -12,10 +12,7 @@
 #include "shell.hpp"
 #include "con_str_vec.hpp"
 
-struct con_str_vec matches
-{
-	0
-};
+struct con_str_vec matches = {0};
 
 std::filesystem::path root_directory;
 

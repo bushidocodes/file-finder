@@ -70,9 +70,6 @@ worker_main(void *argument)
 {
 	char *substring = (char *)argument;
 
-	// TODO: Assert that was set
-	// assert(root_directory != nullptr);
-
 	search_filenames(root_directory, substring);
 
 	pthread_exit(nullptr);
