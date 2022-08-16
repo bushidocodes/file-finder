@@ -1,0 +1,5 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/sean/projects/file-finder'
+make: 'file-finder' is up to date.
+make: Leaving directory '/home/sean/projects/file-finder'
+ 
