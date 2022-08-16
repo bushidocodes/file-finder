@@ -20,12 +20,12 @@ con_str_vec_init(struct con_str_vec *self, size_t capacity)
 {
 	if (capacity == 0)
 	{
-		self->buffer = NULL;
+		self->buffer = nullptr;
 	}
 	else
 	{
 		self->buffer = (char **)calloc(capacity, sizeof(char *));
-		if (self->buffer == NULL)
+		if (self->buffer == nullptr)
 			return -1;
 	}
 
@@ -33,7 +33,7 @@ con_str_vec_init(struct con_str_vec *self, size_t capacity)
 	self->capacity = capacity;
 
 	// No need to check rc. Always returns 0.
-	pthread_mutex_init(&self->lock, NULL);
+	pthread_mutex_init(&self->lock, nullptr);
 
 	return 0;
 }
@@ -44,16 +44,16 @@ con_str_vec_destroy(struct con_str_vec *self)
 	pthread_mutex_lock(&self->lock);
 	if (self->capacity == 0)
 	{
-		assert(self->buffer == NULL);
+		assert(self->buffer == nullptr);
 		assert(self->length == 0);
 		return;
 	}
 
-	assert(self->buffer != NULL);
+	assert(self->buffer != nullptr);
 	for (int i = 0; i < self->length; i++)
 		free(self->buffer[i]);
 	free(self->buffer);
-	self->buffer = NULL;
+	self->buffer = nullptr;
 	self->length = 0;
 	self->capacity = 0;
 
@@ -67,7 +67,7 @@ con_str_vec_resize(struct con_str_vec *self, size_t capacity)
 	if (self->capacity != capacity)
 	{
 		char **temp = (char **)realloc(self->buffer, sizeof(char *) * capacity);
-		if (temp == NULL)
+		if (temp == nullptr)
 			return -1;
 		self->buffer = temp;
 		self->capacity = capacity;

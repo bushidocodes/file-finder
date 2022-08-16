@@ -21,7 +21,7 @@ search_filenames(char *dir_path, char *substring)
 
 	struct dirent *entry;
 
-	while ((entry = readdir(dir)) != NULL)
+	while ((entry = readdir(dir)) != nullptr)
 	{
 		// Skip links, and . and ..
 		if (entry->d_type == DT_LNK || strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
@@ -37,10 +37,10 @@ search_filenames(char *dir_path, char *substring)
 			search_filenames(joined_path, substring);
 		}
 
-		if (strstr(entry->d_name, substring) != NULL)
+		if (strstr(entry->d_name, substring) != nullptr)
 		{
 			char *copy = strdup(entry->d_name);
-			if (copy == NULL)
+			if (copy == nullptr)
 			{
 				perror("strdup");
 				exit(EXIT_FAILURE);
@@ -63,9 +63,9 @@ worker_main(void *argument)
 {
 	char *substring = (char *)argument;
 
-	assert(root_directory != NULL);
+	assert(root_directory != nullptr);
 
 	search_filenames(root_directory, substring);
 
-	pthread_exit(NULL);
+	pthread_exit(nullptr);
 }

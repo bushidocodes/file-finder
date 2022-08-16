@@ -23,7 +23,7 @@ shell_main(void *argument)
 {
 	std::cout << ">> ";
 
-	char *line = NULL;
+	char *line = nullptr;
 	size_t len = 0;
 	ssize_t nread = 0;
 	while ((nread = getline(&line, &len, stdin)) != -1)
@@ -50,20 +50,20 @@ shell_main(void *argument)
 		}
 
 		std::cout << ">> ";
-		fflush(stdout);
+		std::cout.flush();
 
-		if (line != NULL)
+		if (line != nullptr)
 		{
 			free(line);
-			line = NULL;
+			line = nullptr;
 		}
 	}
 
-	if (line != NULL)
+	if (line != nullptr)
 	{
 		free(line);
-		line = NULL;
+		line = nullptr;
 	}
 
-	pthread_exit(NULL);
+	pthread_exit(nullptr);
 }

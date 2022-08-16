@@ -1,14 +1,11 @@
 #define _POSIX_C_SOURCE 200809
 
 #include <errno.h>
-#include <dirent.h>
 #include <pthread.h>
 
-#include <vector>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <filesystem>
 #include <iostream>
+#include <vector>
 
 #include "worker.hpp"
 #include "dumper.hpp"
@@ -16,7 +13,7 @@
 #include "con_str_vec.hpp"
 
 struct con_str_vec matches;
-char *root_directory = NULL;
+char *root_directory = nullptr;
 
 static inline int
 matches_init()
@@ -33,15 +30,14 @@ matches_free()
 static void
 set_root_directory(char *dir)
 {
-	// Sanity check path before spinning up worker threads
-	auto root = opendir(dir);
-	if (root == NULL)
+	const std::filesystem::path root_path{dir};
+
+	if (!std::filesystem::exists(root_path))
 	{
 		std::cerr << "Failed to open " << dir << " with: ";
 		std::perror("");
 		std::exit(EXIT_FAILURE);
 	}
-	closedir(root);
 
 	root_directory = dir;
 }
@@ -56,8 +52,12 @@ int main(int argc, char **argv)
 
 	set_root_directory(argv[1]);
 
-	auto substrings_len = argc - 2;
-	auto substrings = &argv[2];
+	std::vector<std::string> substrings{};
+	substrings.reserve(argc - 2);
+	for (auto i = 2; i < argc; i++)
+	{
+		substrings.push_back(std::move(argv[i]));
+	}
 
 	auto rc = matches_init();
 	if (rc != 0)
@@ -67,11 +67,11 @@ int main(int argc, char **argv)
 	}
 
 	std::vector<pthread_t> workers{};
-	workers.reserve(substrings_len);
+	workers.reserve(substrings.size());
 
-	for (auto i = 0; i < substrings_len; i++)
+	for (auto i = 0; i < substrings.size(); i++)
 	{
-		auto rc = pthread_create(&workers[i], NULL, worker_main, (void *)substrings[i]);
+		auto rc = pthread_create(&workers[i], nullptr, worker_main, (void *)substrings[i].c_str());
 		if (rc)
 		{
 			errno = rc;
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 			for (auto worker : workers)
 			{
 				pthread_cancel(worker);
-				pthread_join(worker, NULL);
+				pthread_join(worker, nullptr);
 			}
 
 			matches_free();
@@ -89,15 +89,15 @@ int main(int argc, char **argv)
 
 	pthread_t dumper;
 	auto quantum = 1;
-	rc = pthread_create(&dumper, NULL, dumper_main, (void *)&quantum);
+	rc = pthread_create(&dumper, nullptr, dumper_main, (void *)&quantum);
 	if (rc)
 	{
 		errno = rc;
 		std::perror("pthread_create");
-		for (auto i = 0; i < substrings_len; i++)
+		for (auto worker : workers)
 		{
-			pthread_cancel(workers[i]);
-			pthread_join(workers[i], NULL);
+			pthread_cancel(worker);
+			pthread_join(worker, nullptr);
 		}
 
 		matches_free();
@@ -105,31 +105,31 @@ int main(int argc, char **argv)
 	}
 
 	pthread_t shell;
-	rc = pthread_create(&shell, NULL, shell_main, NULL);
+	rc = pthread_create(&shell, nullptr, shell_main, nullptr);
 	if (rc)
 	{
 		errno = rc;
 		std::perror("pthread_create");
 		pthread_cancel(dumper);
-		pthread_join(dumper, NULL);
-		for (int i = 0; i < substrings_len; i++)
+		pthread_join(dumper, nullptr);
+		for (auto worker : workers)
 		{
-			pthread_cancel(workers[i]);
-			pthread_join(workers[i], NULL);
+			pthread_cancel(worker);
+			pthread_join(worker, nullptr);
 		}
 
 		matches_free();
 		std::exit(EXIT_FAILURE);
 	}
 
-	pthread_join(shell, NULL);
+	pthread_join(shell, nullptr);
 
 	pthread_cancel(dumper);
-	pthread_join(dumper, NULL);
-	for (int i = 0; i < substrings_len; i++)
+	pthread_join(dumper, nullptr);
+	for (auto worker : workers)
 	{
-		pthread_cancel(workers[i]);
-		pthread_join(workers[i], NULL);
+		pthread_cancel(worker);
+		pthread_join(worker, nullptr);
 	}
 
 	matches_free();
