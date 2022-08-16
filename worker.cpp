@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809
 #define _DEFAULT_SOURCE
 
+#include <filesystem>
+
 #include <assert.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -11,13 +13,18 @@
 
 #include "con_str_vec.hpp"
 
-extern char *root_directory;
+extern std::filesystem::path root_directory;
 extern struct con_str_vec matches;
 
 static inline void
-search_filenames(char *dir_path, char *substring)
+search_filenames(std::filesystem::path dir_path, char *substring)
 {
-	DIR *dir = opendir(dir_path);
+	DIR *dir = opendir(dir_path.c_str());
+	if (dir == NULL)
+	{
+		perror("opendir");
+		exit(EXIT_FAILURE);
+	}
 
 	struct dirent *entry;
 
@@ -33,7 +40,7 @@ search_filenames(char *dir_path, char *substring)
 		{
 			// dirent has a static buffer of 256, so doubling to prevent clang nits
 			char joined_path[513] = {0};
-			snprintf(joined_path, 512, "%s/%s", dir_path, entry->d_name);
+			snprintf(joined_path, 512, "%s/%s", dir_path.c_str(), entry->d_name);
 			search_filenames(joined_path, substring);
 		}
 
@@ -63,7 +70,8 @@ worker_main(void *argument)
 {
 	char *substring = (char *)argument;
 
-	assert(root_directory != nullptr);
+	// TODO: Assert that was set
+	// assert(root_directory != nullptr);
 
 	search_filenames(root_directory, substring);
 

@@ -13,7 +13,7 @@
 #include "con_str_vec.hpp"
 
 struct con_str_vec matches;
-char *root_directory = nullptr;
+std::filesystem::path root_directory;
 
 static inline int
 matches_init()
@@ -30,16 +30,14 @@ matches_free()
 static void
 set_root_directory(char *dir)
 {
-	const std::filesystem::path root_path{dir};
+	root_directory = dir;
 
-	if (!std::filesystem::exists(root_path))
+	if (!std::filesystem::exists(root_directory))
 	{
 		std::cerr << "Failed to open " << dir << " with: ";
 		std::perror("");
 		std::exit(EXIT_FAILURE);
 	}
-
-	root_directory = dir;
 }
 
 int main(int argc, char **argv)
