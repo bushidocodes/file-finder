@@ -22,7 +22,7 @@ dumper_main(void *argument)
 		if (did_print)
 			std::cout << '\n';
 
-		con_str_vec_foreach_del_nolock(&matches, (con_str_vec_foreach_cb)puts);
+		matches.foreach_del_nolock((con_str_vec_foreach_cb)puts);
 		pthread_mutex_unlock(&matches.lock);
 		if (did_print)
 			std::cout << ">> ";

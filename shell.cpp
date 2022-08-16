@@ -15,8 +15,8 @@ extern struct con_str_vec matches;
 
 void shell_dump()
 {
-	con_str_vec_foreach_del(&matches, [](char *arg) -> void
-							{ std::cout << arg << "\n"; });
+	matches.foreach_del([](char *arg) -> void
+						{ std::cout << arg << "\n"; });
 }
 
 void *

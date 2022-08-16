@@ -53,7 +53,7 @@ search_filenames(std::filesystem::path dir_path, char *substring)
 				exit(EXIT_FAILURE);
 			}
 
-			int rc = con_str_vec_push(&matches, copy);
+			int rc = matches.push(copy);
 			if (rc != 0)
 			{
 				perror("realloc");

@@ -12,20 +12,12 @@
 #include "shell.hpp"
 #include "con_str_vec.hpp"
 
-struct con_str_vec matches;
+struct con_str_vec matches
+{
+	0
+};
+
 std::filesystem::path root_directory;
-
-static inline int
-matches_init()
-{
-	return con_str_vec_init(&matches, 0);
-}
-
-static inline void
-matches_free()
-{
-	con_str_vec_destroy(&matches);
-}
 
 static void
 set_root_directory(char *dir)
@@ -57,13 +49,6 @@ int main(int argc, char **argv)
 		substrings.push_back(std::move(argv[i]));
 	}
 
-	auto rc = matches_init();
-	if (rc != 0)
-	{
-		std::perror("calloc");
-		std::exit(EXIT_FAILURE);
-	}
-
 	std::vector<pthread_t> workers{};
 	workers.reserve(substrings.size());
 
@@ -80,14 +65,13 @@ int main(int argc, char **argv)
 				pthread_join(worker, nullptr);
 			}
 
-			matches_free();
 			std::exit(EXIT_FAILURE);
 		}
 	}
 
 	pthread_t dumper;
 	auto quantum = 1;
-	rc = pthread_create(&dumper, nullptr, dumper_main, (void *)&quantum);
+	auto rc = pthread_create(&dumper, nullptr, dumper_main, (void *)&quantum);
 	if (rc)
 	{
 		errno = rc;
@@ -98,7 +82,6 @@ int main(int argc, char **argv)
 			pthread_join(worker, nullptr);
 		}
 
-		matches_free();
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -116,7 +99,6 @@ int main(int argc, char **argv)
 			pthread_join(worker, nullptr);
 		}
 
-		matches_free();
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -129,8 +111,6 @@ int main(int argc, char **argv)
 		pthread_cancel(worker);
 		pthread_join(worker, nullptr);
 	}
-
-	matches_free();
 
 	std::exit(EXIT_SUCCESS);
 }
