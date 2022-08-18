@@ -8,8 +8,7 @@
 #include "shell.hpp"
 #include "con_str_vec.hpp"
 
-struct con_str_vec matches = {0};
-
+con_str_vec matches;
 std::filesystem::path root_directory;
 
 static void
