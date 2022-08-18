@@ -15,7 +15,7 @@ void dumper_main(void)
 		if (not_empty)
 			std::cout << '\n';
 
-		matches.foreach_del([](char *val)
+		matches.foreach_del([](std::string &val)
 							{ std::cout << val << '\n'; });
 
 		if (not_empty)

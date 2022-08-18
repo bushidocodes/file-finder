@@ -14,7 +14,7 @@ void shell_main(void)
 	{
 		if (line.compare("dump") == 0)
 		{
-			matches.foreach_del([](char *arg) -> void
+			matches.foreach_del([](std::string &arg) -> void
 								{ std::cout << arg << "\n"; });
 		}
 		else if (line.compare("exit") == 0)

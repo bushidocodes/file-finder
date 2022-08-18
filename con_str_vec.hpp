@@ -3,7 +3,7 @@
 #include <mutex>
 #include <vector>
 
-typedef void (*con_str_vec_foreach_cb)(char *);
+typedef void (*con_str_vec_foreach_cb)(std::string &);
 
 struct con_str_vec
 {
@@ -13,7 +13,7 @@ struct con_str_vec
 	}
 
 	inline int
-	push(char *elem)
+	push(std::string &elem)
 	{
 		std::lock_guard<std::mutex> lk(lock);
 		data.push_back(elem);
@@ -38,6 +38,6 @@ struct con_str_vec
 	}
 
 private:
-	std::vector<char *> data;
+	std::vector<std::string> data;
 	std::mutex lock;
 };

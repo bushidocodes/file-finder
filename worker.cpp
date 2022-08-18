@@ -47,12 +47,7 @@ search_filenames(std::filesystem::path dir_path, const char *substring)
 
 		if (strstr(entry->d_name, substring) != nullptr)
 		{
-			char *copy = strdup(entry->d_name);
-			if (copy == nullptr)
-			{
-				perror("strdup");
-				exit(EXIT_FAILURE);
-			}
+			std::string copy{entry->d_name};
 
 			int rc = matches.push(copy);
 			if (rc != 0)
