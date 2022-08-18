@@ -1,25 +1,22 @@
+#include <algorithm>
 #include <thread>
 #include <iostream>
 
-#include "con_str_vec.hpp"
-
-extern struct con_str_vec matches;
+#include "matches.hpp"
 
 void dumper_main(void)
 {
 	while (true)
 	{
 		using namespace std::chrono_literals;
+
+		/* Sleep for two minutes */
 		std::this_thread::sleep_for(2000ms);
-		bool not_empty = matches.getLength() > 0;
-		if (not_empty)
-			std::cout << '\n';
 
-		matches.foreach_del([](std::string &val)
-							{ std::cout << val << '\n'; });
-
-		if (not_empty)
-			std::cout << ">> ";
-		std::cout.flush();
+		/* Try to dump all results to stdout */
+		std::string res = matches.dump();
+		if (res.length() > 0)
+			std::cout << '\n'
+					  << res << ">> " << std::flush;
 	}
 }

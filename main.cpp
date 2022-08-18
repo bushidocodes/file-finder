@@ -6,23 +6,7 @@
 #include "worker.hpp"
 #include "dumper.hpp"
 #include "shell.hpp"
-#include "con_str_vec.hpp"
-
-con_str_vec matches;
-std::filesystem::path root_directory;
-
-static void
-set_root_directory(char *dir)
-{
-	root_directory = dir;
-
-	if (!std::filesystem::exists(root_directory))
-	{
-		std::cerr << "Failed to open " << dir << " with: ";
-		std::perror("");
-		std::exit(EXIT_FAILURE);
-	}
-}
+#include "matches.hpp"
 
 int main(int argc, char **argv)
 {
@@ -32,7 +16,13 @@ int main(int argc, char **argv)
 		std::exit(EXIT_FAILURE);
 	}
 
-	set_root_directory(argv[1]);
+	std::string root_directory{argv[1]};
+	if (!std::filesystem::exists(root_directory))
+	{
+		std::cerr << "Failed to open " << root_directory << " with: ";
+		std::perror("");
+		std::exit(EXIT_FAILURE);
+	}
 
 	std::vector<std::string> substrings{};
 	substrings.reserve(argc - 2);
@@ -44,7 +34,7 @@ int main(int argc, char **argv)
 	std::vector<std::thread> workers;
 	for (auto i = 0; i < substrings.size(); i++)
 	{
-		workers.push_back(std::thread{worker_main, substrings[i].c_str()});
+		workers.push_back(std::thread{search_filenames, root_directory, substrings[i]});
 	}
 
 	std::thread dumper{dumper_main};

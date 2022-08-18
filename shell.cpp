@@ -1,10 +1,7 @@
-#include <string>
-#include <thread>
 #include <iostream>
+#include <string>
 
-#include "con_str_vec.hpp"
-
-extern struct con_str_vec matches;
+#include "matches.hpp"
 
 void shell_main(void)
 {
@@ -14,8 +11,7 @@ void shell_main(void)
 	{
 		if (line.compare("dump") == 0)
 		{
-			matches.foreach_del([](std::string &arg) -> void
-								{ std::cout << arg << "\n"; });
+			std::cout << matches.dump() << ">> ";
 		}
 		else if (line.compare("exit") == 0)
 		{
@@ -23,11 +19,9 @@ void shell_main(void)
 		}
 		else
 		{
-			std::cout << "Unknown Command: " << line << "\n";
-			std::cout << "Valid Commands: dump, exit\n";
+			std::cout << "Unknown Command: " << line << "\nValid Commands: dump, exit\n>> ";
 		}
 
-		std::cout << ">> ";
 		std::cout.flush();
 	}
 }

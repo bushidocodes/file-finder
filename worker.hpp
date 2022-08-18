@@ -1,5 +1,6 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
-void worker_main(std::string substring);
+void search_filenames(std::filesystem::path dir_path, const std::string &substring);

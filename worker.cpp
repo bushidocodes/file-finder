@@ -1,67 +1,27 @@
-#define _POSIX_C_SOURCE 200809
-#define _DEFAULT_SOURCE
-
 #include <filesystem>
 #include <string>
+#include <iostream>
 
-#include <assert.h>
-#include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include <sys/types.h>
+#include "matches.hpp"
 
-#include "con_str_vec.hpp"
-
-extern std::filesystem::path root_directory;
-extern struct con_str_vec matches;
-
-static inline void
-search_filenames(std::filesystem::path dir_path, const char *substring)
+void search_filenames(std::filesystem::path dir_path, const std::string &substring)
 {
-	DIR *dir = opendir(dir_path.c_str());
-	if (dir == NULL)
+	for (auto const &dir_entry : std::filesystem::directory_iterator{dir_path})
 	{
-		perror("opendir");
-		exit(EXIT_FAILURE);
-	}
-
-	struct dirent *entry;
-
-	while ((entry = readdir(dir)) != nullptr)
-	{
-		// Skip links, and . and ..
-		if (entry->d_type == DT_LNK || strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+		if (dir_entry.is_symlink() || dir_entry.path().compare(".") == 0 || dir_entry.path().compare("..") == 0)
 		{
 			continue;
 		}
 
-		if (entry->d_type == DT_DIR)
+		if (dir_entry.is_directory())
 		{
-			// dirent has a static buffer of 256, so doubling to prevent clang nits
-			char joined_path[513] = {0};
-			snprintf(joined_path, 512, "%s/%s", dir_path.c_str(), entry->d_name);
-			search_filenames(joined_path, substring);
+			search_filenames(dir_entry.path(), substring);
 		}
 
-		if (strstr(entry->d_name, substring) != nullptr)
+		auto filename = dir_entry.path().filename().string();
+		if (filename.find(substring, 0) != std::string::npos)
 		{
-			std::string copy{entry->d_name};
-
-			int rc = matches.push(copy);
-			if (rc != 0)
-			{
-				perror("realloc");
-				break;
-			}
+			matches.add(std::move(filename));
 		}
 	}
-
-	closedir(dir);
-}
-
-void worker_main(std::string substring)
-{
-	search_filenames(root_directory, substring.c_str());
 }
