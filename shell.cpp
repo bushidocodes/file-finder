@@ -1,16 +1,12 @@
-#define _POSIX_C_SOURCE 200809
-
-#include <pthread.h>
-
 #include <string>
+#include <thread>
 #include <iostream>
 
 #include "con_str_vec.hpp"
 
 extern struct con_str_vec matches;
 
-void *
-shell_main(void *argument)
+void shell_main(void)
 {
 	std::cout << ">> ";
 	std::string line;
@@ -34,6 +30,4 @@ shell_main(void *argument)
 		std::cout << ">> ";
 		std::cout.flush();
 	}
-
-	pthread_exit(nullptr);
 }

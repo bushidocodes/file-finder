@@ -2,6 +2,7 @@
 #define _DEFAULT_SOURCE
 
 #include <filesystem>
+#include <string>
 
 #include <assert.h>
 #include <dirent.h>
@@ -17,7 +18,7 @@ extern std::filesystem::path root_directory;
 extern struct con_str_vec matches;
 
 static inline void
-search_filenames(std::filesystem::path dir_path, char *substring)
+search_filenames(std::filesystem::path dir_path, const char *substring)
 {
 	DIR *dir = opendir(dir_path.c_str());
 	if (dir == NULL)
@@ -65,12 +66,7 @@ search_filenames(std::filesystem::path dir_path, char *substring)
 	closedir(dir);
 }
 
-void *
-worker_main(void *argument)
+void worker_main(std::string substring)
 {
-	char *substring = (char *)argument;
-
-	search_filenames(root_directory, substring);
-
-	pthread_exit(nullptr);
+	search_filenames(root_directory, substring.c_str());
 }

@@ -1,3 +1,5 @@
 #pragma once
 
-void *worker_main(void *argument);
+#include <string>
+
+void worker_main(std::string substring);

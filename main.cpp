@@ -1,10 +1,6 @@
-#define _POSIX_C_SOURCE 200809
-
-#include <errno.h>
-#include <pthread.h>
-
 #include <filesystem>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include "worker.hpp"
@@ -46,68 +42,21 @@ int main(int argc, char **argv)
 		substrings.push_back(std::move(argv[i]));
 	}
 
-	std::vector<pthread_t> workers{};
-	workers.reserve(substrings.size());
-
+	std::vector<std::thread> workers;
 	for (auto i = 0; i < substrings.size(); i++)
 	{
-		auto rc = pthread_create(&workers[i], nullptr, worker_main, (void *)substrings[i].c_str());
-		if (rc)
-		{
-			errno = rc;
-			std::perror("pthread_create");
-			for (auto worker : workers)
-			{
-				pthread_cancel(worker);
-				pthread_join(worker, nullptr);
-			}
-
-			std::exit(EXIT_FAILURE);
-		}
+		workers.push_back(std::thread{worker_main, substrings[i].c_str()});
 	}
 
-	pthread_t dumper;
-	auto quantum = 1;
-	auto rc = pthread_create(&dumper, nullptr, dumper_main, (void *)&quantum);
-	if (rc)
+	std::thread dumper{dumper_main};
+	std::thread shell{shell_main};
+
+	dumper.detach();
+	for (auto &w : workers)
 	{
-		errno = rc;
-		std::perror("pthread_create");
-		for (auto worker : workers)
-		{
-			pthread_cancel(worker);
-			pthread_join(worker, nullptr);
-		}
-
-		std::exit(EXIT_FAILURE);
+		w.detach();
 	}
 
-	pthread_t shell;
-	rc = pthread_create(&shell, nullptr, shell_main, nullptr);
-	if (rc)
-	{
-		errno = rc;
-		std::perror("pthread_create");
-		pthread_cancel(dumper);
-		pthread_join(dumper, nullptr);
-		for (auto worker : workers)
-		{
-			pthread_cancel(worker);
-			pthread_join(worker, nullptr);
-		}
-
-		std::exit(EXIT_FAILURE);
-	}
-
-	pthread_join(shell, nullptr);
-
-	pthread_cancel(dumper);
-	pthread_join(dumper, nullptr);
-	for (auto worker : workers)
-	{
-		pthread_cancel(worker);
-		pthread_join(worker, nullptr);
-	}
-
+	shell.join();
 	std::exit(EXIT_SUCCESS);
 }

@@ -1,6 +1,6 @@
 
 file-finder: main.cpp worker.cpp shell.cpp dumper.cpp
-	clang++-15 -std=c++20 -stdlib=libc++ -pthread -o $@ $^
+	clang++-14 -std=c++20 -pthread -g3 -O0 -o $@ $^
 
 clean:
 	rm file-finder

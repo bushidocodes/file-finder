@@ -1,3 +1,3 @@
 #pragma once
 
-void *shell_main(void *argument);
+void shell_main(void);
