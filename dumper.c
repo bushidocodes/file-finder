@@ -19,7 +19,7 @@ dumper_main(void *argument)
 		pthread_mutex_lock(&matches.lock);
 		bool did_print = matches.length > 0;
 		if (did_print) printf("\n");
-		int count = con_str_vec_foreach_del_nolock(&matches, (con_str_vec_foreach_cb)puts);
+		con_str_vec_foreach_del_nolock(&matches, (con_str_vec_foreach_cb)puts);
 		pthread_mutex_unlock(&matches.lock);
 		if (did_print) printf(">> ");
 		fflush(stdout);

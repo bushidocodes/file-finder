@@ -44,16 +44,11 @@ shell_main(void *argument)
 		printf(">> ");
 		fflush(stdout);
 
-		if (line != NULL) {
-			free(line);
-			line = NULL;
-		}
-	}
-
-	if (line != NULL) {
 		free(line);
 		line = NULL;
 	}
+
+	free(line);
 
 	pthread_exit(NULL);
 }
