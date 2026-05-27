@@ -12,15 +12,19 @@
 
 extern struct con_str_vec matches;
 
+static void
+print_line(char *s) { puts(s); }
+
 void
 shell_dump()
 {
-	con_str_vec_foreach_del(&matches, (con_str_vec_foreach_cb)puts);
+	con_str_vec_foreach_del(&matches, print_line);
 }
 
 void *
 shell_main(void *argument)
 {
+	(void)argument;
 	printf(">> ");
 
 	char   *line  = NULL;
@@ -44,16 +48,11 @@ shell_main(void *argument)
 		printf(">> ");
 		fflush(stdout);
 
-		if (line != NULL) {
-			free(line);
-			line = NULL;
-		}
-	}
-
-	if (line != NULL) {
 		free(line);
 		line = NULL;
 	}
+
+	free(line);
 
 	pthread_exit(NULL);
 }

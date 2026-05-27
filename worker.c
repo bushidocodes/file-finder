@@ -28,7 +28,6 @@ search_filenames(char *dir_path, char *substring)
 		}
 
 		if (entry->d_type == DT_DIR) {
-			// dirent has a static buffer of 256, so doubling to prevent clang nits
 			char joined_path[513] = { 0 };
 			snprintf(joined_path, 512, "%s/%s", dir_path, entry->d_name);
 			search_filenames(joined_path, substring);
@@ -44,6 +43,7 @@ search_filenames(char *dir_path, char *substring)
 			int rc = con_str_vec_push(&matches, copy);
 			if (rc != 0) {
 				perror("realloc");
+				free(copy);
 				break;
 			}
 		}

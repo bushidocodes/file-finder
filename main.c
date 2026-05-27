@@ -21,7 +21,7 @@ matches_init()
 	return con_str_vec_init(&matches, 0);
 }
 
-static inline int
+static inline void
 matches_free()
 {
 	con_str_vec_destroy(&matches);
@@ -63,14 +63,14 @@ main(int argc, char **argv)
 
 	pthread_t workers[substrings_len];
 
-	for (int i = 0; i < substrings_len; i++) {
+	for (size_t i = 0; i < substrings_len; i++) {
 		int rc = pthread_create(&workers[i], NULL, worker_main, (void *)substrings[i]);
 		if (rc) {
 			errno = rc;
 			perror("pthread_create");
-			for (int j = 0; j < i; j++){
-				pthread_cancel(workers[i]);
-				pthread_join(workers[i], NULL);
+			for (size_t j = 0; j < i; j++) {
+				pthread_cancel(workers[j]);
+				pthread_join(workers[j], NULL);
 			}
 
 			matches_free();
@@ -84,7 +84,7 @@ main(int argc, char **argv)
 	if (rc) {
 		errno = rc;
 		perror("pthread_create");
-		for (int i = 0; i < substrings_len; i++) {
+		for (size_t i = 0; i < substrings_len; i++) {
 			pthread_cancel(workers[i]);
 			pthread_join(workers[i], NULL);
 		}
@@ -100,7 +100,7 @@ main(int argc, char **argv)
 		perror("pthread_create");
 		pthread_cancel(dumper);
 		pthread_join(dumper, NULL);
-		for (int i = 0; i < substrings_len; i++) {
+		for (size_t i = 0; i < substrings_len; i++) {
 			pthread_cancel(workers[i]);
 			pthread_join(workers[i], NULL);
 		}
@@ -113,7 +113,7 @@ main(int argc, char **argv)
 
 	pthread_cancel(dumper);
 	pthread_join(dumper, NULL);
-	for (int i = 0; i < substrings_len; i++) {
+	for (size_t i = 0; i < substrings_len; i++) {
 		pthread_cancel(workers[i]);
 		pthread_join(workers[i], NULL);
 	}

@@ -8,6 +8,9 @@
 
 extern struct con_str_vec matches;
 
+static void
+print_line(char *s) { puts(s); }
+
 void *
 dumper_main(void *argument)
 {
@@ -19,7 +22,7 @@ dumper_main(void *argument)
 		pthread_mutex_lock(&matches.lock);
 		bool did_print = matches.length > 0;
 		if (did_print) printf("\n");
-		int count = con_str_vec_foreach_del_nolock(&matches, (con_str_vec_foreach_cb)puts);
+		con_str_vec_foreach_del_nolock(&matches, print_line);
 		pthread_mutex_unlock(&matches.lock);
 		if (did_print) printf(">> ");
 		fflush(stdout);

@@ -37,19 +37,11 @@ static inline void
 con_str_vec_destroy(struct con_str_vec *self)
 {
 	pthread_mutex_lock(&self->lock);
-	if (self->capacity == 0) {
-		assert(self->buffer == NULL);
-		assert(self->length == 0);
-		return;
-	}
-
-	assert(self->buffer != NULL);
-	for (int i = 0; i < self->length; i++) free(self->buffer[i]);
+	for (size_t i = 0; i < self->length; i++) free(self->buffer[i]);
 	free(self->buffer);
 	self->buffer   = NULL;
 	self->length   = 0;
 	self->capacity = 0;
-
 	pthread_mutex_unlock(&self->lock);
 	pthread_mutex_destroy(&self->lock);
 }
@@ -91,25 +83,20 @@ con_str_vec_push(struct con_str_vec *self, char *elem)
 	return 0;
 }
 
-static inline int
+static inline void
 con_str_vec_foreach_del_nolock(struct con_str_vec *self, con_str_vec_foreach_cb cb)
 {
-	for (int i = 0; i < self->length; i++) {
+	for (size_t i = 0; i < self->length; i++) {
 		cb(self->buffer[i]);
 		free(self->buffer[i]);
 	}
-
 	self->length = 0;
 }
 
-static inline int
+static inline void
 con_str_vec_foreach_del(struct con_str_vec *self, con_str_vec_foreach_cb cb)
 {
-	int rc;
-
 	pthread_mutex_lock(&self->lock);
-	rc = con_str_vec_foreach_del_nolock(self, cb);
+	con_str_vec_foreach_del_nolock(self, cb);
 	pthread_mutex_unlock(&self->lock);
-
-	return rc;
 }
