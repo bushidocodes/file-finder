@@ -72,7 +72,7 @@ con_str_vec_push(struct con_str_vec *self, char *elem)
 
 	if (self->length == self->capacity) {
 		int rc = con_str_vec_grow(self);
-		if (rc != 0) return -1;
+		if (rc != 0) { pthread_mutex_unlock(&self->lock); return -1; }
 	}
 
 	self->buffer[self->length] = elem;
