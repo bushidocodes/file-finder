@@ -18,6 +18,7 @@ static inline void
 search_filenames(char *dir_path, char *substring)
 {
 	DIR *dir = opendir(dir_path);
+	if (dir == NULL) return;
 
 	struct dirent *entry;
 
