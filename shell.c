@@ -15,15 +15,19 @@ extern struct con_str_vec matches;
 static void
 shell_dump()
 {
+	flockfile(stdout);
 	con_str_vec_foreach_del(&matches, con_str_vec_puts);
+	funlockfile(stdout);
 }
 
 void *
 shell_main(void *argument)
 {
 	(void)argument;
+	flockfile(stdout);
 	printf(">> ");
 	fflush(stdout);
+	funlockfile(stdout);
 
 	char   *line  = NULL;
 	size_t  len   = 0;
@@ -39,12 +43,16 @@ shell_main(void *argument)
 		} else if (strcmp(line, "exit") == 0) {
 			break;
 		} else {
+			flockfile(stdout);
 			printf("Unknown Command: '%s'\n", line);
 			printf("Valid Commands: dump, exit\n");
+			funlockfile(stdout);
 		}
 
+		flockfile(stdout);
 		printf(">> ");
 		fflush(stdout);
+		funlockfile(stdout);
 
 		free(line);
 		line = NULL;

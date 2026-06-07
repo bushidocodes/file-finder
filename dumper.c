@@ -16,6 +16,7 @@ dumper_main(void *argument)
 
 	while (true) {
 		sleep(quantum);
+		flockfile(stdout);
 		pthread_mutex_lock(&matches.lock);
 		bool did_print = matches.length > 0;
 		if (did_print) printf("\n");
@@ -23,5 +24,6 @@ dumper_main(void *argument)
 		pthread_mutex_unlock(&matches.lock);
 		if (did_print) printf(">> ");
 		fflush(stdout);
+		funlockfile(stdout);
 	}
 }
