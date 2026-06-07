@@ -1,1 +1,4 @@
 file-finder
+file-finder.debug
+src/*.o
+src/*.d

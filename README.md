@@ -16,7 +16,7 @@ make
 ./file-finder <directory> <substring> [<substring2> ...]
 ```
 
-Each substring gets its own worker thread searching the tree concurrently. Once running, the tool drops into an interactive shell:
+A single worker thread traverses the directory tree once, checking each filename against all substrings in one pass. Once running, the tool drops into an interactive shell:
 
 | Command | Effect |
 |---------|--------|
@@ -30,19 +30,34 @@ Results are also flushed automatically every second.
 ```
 $ ./file-finder /usr/include pthread mutex
 >> dump
-pthread.h
-pthread_mutex_destroy.3.gz
-pthread_mutex_init.3.gz
-pthread_mutex_lock.3.gz
+/usr/include/pthread.h
+/usr/include/boost/thread/pthread/pthread_mutex_scoped_lock.hpp
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h
 >> exit
 ```
 
 ## Architecture
 
-| Component | File | Role |
-|-----------|------|------|
-| Main      | `main.c` | Parses args, spawns threads, joins on shell exit |
-| Worker    | `worker.c` | One thread per substring; recursively walks the directory tree |
-| Dumper    | `dumper.c` | Background thread that flushes matches to stdout every second |
-| Shell     | `shell.c` | Reads `dump` / `exit` commands from stdin |
-| Buffer    | `con_str_vec.h` | Thread-safe growable string vector shared by all components |
+```
+file-finder/
+├── include/
+│   ├── con_str_vec.h   thread-safe growable string vector
+│   ├── globals.h       shared application state (extern declarations)
+│   ├── worker.h
+│   ├── dumper.h
+│   └── shell.h
+├── src/
+│   ├── main.c          argument parsing, thread lifecycle
+│   ├── worker.c        recursive directory traversal and substring matching
+│   ├── dumper.c        periodic background flush of matches to stdout
+│   └── shell.c         interactive dump/exit command loop
+└── Makefile
+```
+
+| Component | Role |
+|-----------|------|
+| `src/main.c` | Parses args, spawns threads, joins on shell exit |
+| `src/worker.c` | Single traversal of the directory tree; checks each filename against all substrings |
+| `src/dumper.c` | Background thread that flushes matches to stdout every second |
+| `src/shell.c` | Reads `dump` / `exit` commands from stdin |
+| `include/con_str_vec.h` | Thread-safe growable string vector shared by all components |
