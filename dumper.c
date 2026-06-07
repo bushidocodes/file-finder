@@ -5,12 +5,10 @@
 
 #include <pthread.h>
 
-#include "con_str_vec.h"
+#include "globals.h"
 
-extern struct con_str_vec matches;
-
-static void funlockfile_cleanup(void *arg)      { funlockfile((FILE *)arg); }
-static void mutex_unlock_cleanup(void *arg)     { pthread_mutex_unlock((pthread_mutex_t *)arg); }
+static void funlockfile_cleanup(void *arg)  { funlockfile((FILE *)arg); }
+static void mutex_unlock_cleanup(void *arg) { pthread_mutex_unlock((pthread_mutex_t *)arg); }
 
 void *
 dumper_main(void *argument)
@@ -24,7 +22,7 @@ dumper_main(void *argument)
 		flockfile(stdout);
 		pthread_cleanup_push(funlockfile_cleanup, stdout);
 
-		bool did_print; /* declared in outer scope so it survives inner pop */
+		bool did_print; /* outer scope survives the inner pthread_cleanup_pop */
 		pthread_mutex_lock(&matches.lock);
 		pthread_cleanup_push(mutex_unlock_cleanup, &matches.lock);
 		did_print = matches.length > 0;
@@ -37,5 +35,5 @@ dumper_main(void *argument)
 		pthread_cleanup_pop(1); /* funlockfile(stdout) */
 	}
 
-	return NULL; /* unreachable; thread exits via pthread_cancel */
+	/* unreachable: thread exits via pthread_cancel from main */
 }

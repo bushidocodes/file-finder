@@ -5,9 +5,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "con_str_vec.h"
-
-extern struct con_str_vec matches;
+#include "globals.h"
 
 static void
 shell_dump()
@@ -26,9 +24,9 @@ shell_main(void *argument)
 	fflush(stdout);
 	funlockfile(stdout);
 
-	char   *line  = NULL;
-	size_t  len   = 0;
-	ssize_t nread = 0;
+	char   *line = NULL;
+	size_t  len  = 0;
+	ssize_t nread;
 	while ((nread = getline(&line, &len, stdin)) != -1) {
 		/* strip trailing newline */
 		if (nread >= 1 && line[nread - 1] == '\n') line[nread - 1] = '\0';
@@ -54,7 +52,5 @@ shell_main(void *argument)
 	}
 
 	free(line);
-
-	pthread_exit(NULL);
 	return NULL;
 }

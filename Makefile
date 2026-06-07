@@ -9,9 +9,12 @@ all: $(TARGET)
 $(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-# Debug build: no optimizations, full debug info, ThreadSanitizer
-debug: CFLAGS = -std=c11 -Wall -Wextra -O0 -g -pthread -fsanitize=thread
-debug: $(TARGET)
+# Debug build: no optimisation, full debug info, ThreadSanitizer.
+# Output is file-finder.debug so it does not clobber the release binary.
+$(TARGET).debug: $(SRCS)
+	$(CC) -std=c11 -Wall -Wextra -O0 -g -pthread -fsanitize=thread -o $@ $^
+
+debug: $(TARGET).debug
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(TARGET).debug
