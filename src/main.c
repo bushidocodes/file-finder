@@ -4,7 +4,6 @@
 
 #include <errno.h>
 #include <dirent.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -96,6 +95,5 @@ main(int argc, char **argv)
 
 	con_str_vec_destroy(&matches);
 
-	/* worker signals failure by returning (void*)(intptr_t)-1 */
-	return worker_retval == (void *)(intptr_t)-1 ? EXIT_FAILURE : EXIT_SUCCESS;
+	return worker_retval == WORKER_FAILURE ? EXIT_FAILURE : EXIT_SUCCESS;
 }

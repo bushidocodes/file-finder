@@ -3,6 +3,7 @@
 
 /* bool / true / false are C23 keywords — no <stdbool.h> needed. */
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -38,5 +39,5 @@ dumper_main(void *argument)
 		pthread_cleanup_pop(1); /* funlockfile(stdout) */
 	}
 
-	/* unreachable: thread exits via pthread_cancel from main */
+	unreachable(); /* thread exits only via pthread_cancel from main */
 }

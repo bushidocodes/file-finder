@@ -6,7 +6,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +28,7 @@ make_path(const char *dir, const char *name)
 	char *path = nullptr;
 	if (asprintf(&path, "%s/%s", dir, name) < 0) {
 		perror("asprintf");
-		pthread_exit((void *)(intptr_t)-1);
+		pthread_exit(WORKER_FAILURE);
 	}
 	return path;
 }
@@ -80,7 +79,7 @@ search_filenames(const char *dir_path, const char *const *substrings, size_t cou
 				if (con_str_vec_push(&matches, copy) != 0) {
 					perror("con_str_vec_push");
 					free(copy);
-					pthread_exit((void *)(intptr_t)-1);
+					pthread_exit(WORKER_FAILURE);
 				}
 
 				break; /* report each file at most once */

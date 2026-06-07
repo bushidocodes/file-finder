@@ -74,8 +74,8 @@ static void run_worker(const char *const *substrings, size_t count)
         .count      = count,
     };
     pthread_t t;
-    TEST_ASSERT_EQUAL_INT(0, pthread_create(&t, NULL, worker_main, &args));
-    void *retval = NULL;
+    TEST_ASSERT_EQUAL_INT(0, pthread_create(&t, nullptr, worker_main, &args));
+    void *retval = nullptr;
     TEST_ASSERT_EQUAL_INT(0, pthread_join(t, &retval));
     TEST_ASSERT_NULL_MESSAGE(retval, "worker_main returned non-NULL (failure)");
 }
@@ -314,7 +314,7 @@ void test_worker_main_returns_null_on_success(void)
         .count      = 1,
     };
     pthread_t t;
-    pthread_create(&t, NULL, worker_main, &args);
+    pthread_create(&t, nullptr, worker_main, &args);
     void *retval = (void *)1; /* sentinel — must be overwritten */
     pthread_join(t, &retval);
     TEST_ASSERT_NULL(retval);
