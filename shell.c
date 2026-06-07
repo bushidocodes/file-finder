@@ -26,6 +26,7 @@ shell_main(void *argument)
 {
 	(void)argument;
 	printf(">> ");
+	fflush(stdout);
 
 	char   *line  = NULL;
 	size_t  len   = 0;
