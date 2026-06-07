@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include <pthread.h>
@@ -7,6 +8,9 @@
 #include "con_str_vec.h"
 
 extern struct con_str_vec matches;
+
+static void funlockfile_cleanup(void *arg)      { funlockfile((FILE *)arg); }
+static void mutex_unlock_cleanup(void *arg)     { pthread_mutex_unlock((pthread_mutex_t *)arg); }
 
 void *
 dumper_main(void *argument)
@@ -16,14 +20,22 @@ dumper_main(void *argument)
 
 	while (true) {
 		sleep(quantum);
+
 		flockfile(stdout);
+		pthread_cleanup_push(funlockfile_cleanup, stdout);
+
+		bool did_print; /* declared in outer scope so it survives inner pop */
 		pthread_mutex_lock(&matches.lock);
-		bool did_print = matches.length > 0;
+		pthread_cleanup_push(mutex_unlock_cleanup, &matches.lock);
+		did_print = matches.length > 0;
 		if (did_print) printf("\n");
 		con_str_vec_foreach_del_nolock(&matches, con_str_vec_puts);
-		pthread_mutex_unlock(&matches.lock);
+		pthread_cleanup_pop(1); /* pthread_mutex_unlock(&matches.lock) */
+
 		if (did_print) printf(">> ");
 		fflush(stdout);
-		funlockfile(stdout);
+		pthread_cleanup_pop(1); /* funlockfile(stdout) */
 	}
+
+	return NULL; /* unreachable; thread exits via pthread_cancel */
 }

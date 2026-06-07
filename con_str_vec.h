@@ -1,6 +1,5 @@
 #pragma once
 
-#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +49,7 @@ static inline int
 con_str_vec_resize(struct con_str_vec *self, size_t capacity)
 {
 	if (self->capacity != capacity) {
-		char **temp = (char **)realloc(self->buffer, sizeof(char *) * capacity);
+		char **temp = realloc(self->buffer, sizeof(char *) * capacity);
 		if (temp == NULL) return -1;
 		self->buffer   = temp;
 		self->capacity = capacity;
