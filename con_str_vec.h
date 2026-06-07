@@ -1,5 +1,6 @@
 #pragma once
 
+#include <errno.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,7 @@ struct con_str_vec {
 	pthread_mutex_t lock;
 };
 
-typedef void (*con_str_vec_foreach_cb)(char *);
+typedef void (*con_str_vec_foreach_cb)(const char *);
 
 static inline int
 con_str_vec_init(struct con_str_vec *self, size_t capacity)
@@ -26,8 +27,12 @@ con_str_vec_init(struct con_str_vec *self, size_t capacity)
 	self->length   = 0;
 	self->capacity = capacity;
 
-	// No need to check rc. Always returns 0.
-	pthread_mutex_init(&self->lock, NULL);
+	int rc = pthread_mutex_init(&self->lock, NULL);
+	if (rc != 0) {
+		free(self->buffer);
+		errno = rc;
+		return -1;
+	}
 
 	return 0;
 }
@@ -36,7 +41,10 @@ static inline void
 con_str_vec_destroy(struct con_str_vec *self)
 {
 	pthread_mutex_lock(&self->lock);
-	for (size_t i = 0; i < self->length; i++) free(self->buffer[i]);
+	for (size_t i = 0; i < self->length; i++) {
+		free(self->buffer[i]);
+		self->buffer[i] = NULL;
+	}
 	free(self->buffer);
 	self->buffer   = NULL;
 	self->length   = 0;
@@ -88,6 +96,7 @@ con_str_vec_foreach_del_nolock(struct con_str_vec *self, con_str_vec_foreach_cb 
 	for (size_t i = 0; i < self->length; i++) {
 		cb(self->buffer[i]);
 		free(self->buffer[i]);
+		self->buffer[i] = NULL;
 	}
 	self->length = 0;
 }
@@ -101,4 +110,4 @@ con_str_vec_foreach_del(struct con_str_vec *self, con_str_vec_foreach_cb cb)
 }
 
 static inline void
-con_str_vec_puts(char *s) { puts(s); }
+con_str_vec_puts(const char *s) { puts(s); }

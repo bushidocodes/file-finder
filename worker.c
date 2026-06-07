@@ -11,10 +11,8 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
-#include "con_str_vec.h"
+#include "globals.h"
 #include "worker.h"
-
-extern struct con_str_vec matches;
 
 static void closedir_cleanup(void *dir) { closedir((DIR *)dir); }
 
@@ -89,6 +87,5 @@ worker_main(void *argument)
 
 	search_filenames(args->root_dir, args->substrings, args->count);
 
-	pthread_exit(NULL);
 	return NULL;
 }
