@@ -13,6 +13,7 @@
 #include <sys/types.h>
 
 #include "con_str_vec.h"
+#include "worker.h"
 
 extern char              *root_directory;
 extern struct con_str_vec matches;
@@ -20,7 +21,7 @@ extern struct con_str_vec matches;
 static void closedir_cleanup(void *dir) { closedir((DIR *)dir); }
 
 static inline void
-search_filenames(char *dir_path, char *substring)
+search_filenames(char *dir_path, char **substrings, size_t count)
 {
 	DIR *dir = opendir(dir_path);
 	if (dir == NULL) return;
@@ -49,20 +50,26 @@ search_filenames(char *dir_path, char *substring)
 				perror("asprintf");
 				pthread_exit((void *)(intptr_t)-1);
 			}
-			search_filenames(joined_path, substring);
+			search_filenames(joined_path, substrings, count);
 			free(joined_path);
-		} else if (strstr(entry->d_name, substring) != NULL) {
-			char *copy = NULL;
-			if (asprintf(&copy, "%s/%s", dir_path, entry->d_name) < 0) {
-				perror("asprintf");
-				pthread_exit((void *)(intptr_t)-1);
-			}
+		} else {
+			for (size_t i = 0; i < count; i++) {
+				if (strstr(entry->d_name, substrings[i]) == NULL) continue;
 
-			int rc = con_str_vec_push(&matches, copy);
-			if (rc != 0) {
-				perror("realloc");
-				free(copy);
-				break;
+				char *copy = NULL;
+				if (asprintf(&copy, "%s/%s", dir_path, entry->d_name) < 0) {
+					perror("asprintf");
+					pthread_exit((void *)(intptr_t)-1);
+				}
+
+				int rc = con_str_vec_push(&matches, copy);
+				if (rc != 0) {
+					perror("realloc");
+					free(copy);
+					pthread_exit((void *)(intptr_t)-1);
+				}
+
+				break; // report each file at most once
 			}
 		}
 	}
@@ -73,11 +80,12 @@ search_filenames(char *dir_path, char *substring)
 void *
 worker_main(void *argument)
 {
-	char *substring = (char *)argument;
+	struct worker_args *args = (struct worker_args *)argument;
 
 	assert(root_directory != NULL);
+	assert(args->count > 0);
 
-	search_filenames(root_directory, substring);
+	search_filenames(root_directory, args->substrings, args->count);
 
 	pthread_exit(NULL);
 	return NULL;
