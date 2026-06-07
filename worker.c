@@ -52,9 +52,9 @@ search_filenames(char *dir_path, char *substring)
 			search_filenames(joined_path, substring);
 			free(joined_path);
 		} else if (strstr(entry->d_name, substring) != NULL) {
-			char *copy = strdup(entry->d_name);
-			if (copy == NULL) {
-				perror("strdup");
+			char *copy = NULL;
+			if (asprintf(&copy, "%s/%s", dir_path, entry->d_name) < 0) {
+				perror("asprintf");
 				pthread_exit((void *)(intptr_t)-1);
 			}
 
