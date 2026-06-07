@@ -33,9 +33,7 @@ search_filenames(char *dir_path, char *substring)
 			char joined_path[513] = { 0 };
 			snprintf(joined_path, sizeof(joined_path), "%s/%s", dir_path, entry->d_name);
 			search_filenames(joined_path, substring);
-		}
-
-		if (strstr(entry->d_name, substring) != NULL) {
+		} else if (strstr(entry->d_name, substring) != NULL) {
 			char *copy = strdup(entry->d_name);
 			if (copy == NULL) {
 				perror("strdup");
