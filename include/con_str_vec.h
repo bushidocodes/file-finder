@@ -75,6 +75,11 @@ con_str_vec_grow(struct con_str_vec *self)
 	return con_str_vec_resize(self, capacity);
 }
 
+/*
+ * Append elem to the vector, transferring ownership to it.  The vector
+ * will free elem when it is drained (foreach_del*) or destroyed.
+ * On failure (-1), elem is NOT freed — the caller retains ownership.
+ */
 [[nodiscard]] static inline int
 con_str_vec_push(struct con_str_vec *self, char *elem)
 {

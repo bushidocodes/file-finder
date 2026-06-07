@@ -12,8 +12,10 @@ OBJS     = $(SRCS:.c=.o)
 DEPFILES = $(SRCS:.c=.d)
 CFLAGS   = -std=c23 -Wall -Wextra -O3 -flto -pthread -MMD -MP -I$(INCDIR)
 TESTCFLAGS = -std=c23 -Wall -Wextra -O0 -g -pthread -I$(INCDIR) -I$(TESTDIR)/unity
+TSANCFLAGS = -std=c23 -Wall -Wextra -O0 -g -pthread -fsanitize=thread \
+             -I$(INCDIR) -I$(TESTDIR)/unity
 
-.PHONY: all clean debug install test
+.PHONY: all clean debug install test tsan
 
 all: $(TARGET)
 
@@ -52,6 +54,20 @@ test: $(TESTDIR)/test_con_str_vec $(TESTDIR)/test_worker
 	@echo "--- test_worker ---"
 	@$(TESTDIR)/test_worker
 
+# ThreadSanitizer builds and runs for the unit tests
+$(TESTDIR)/test_con_str_vec.tsan: $(TESTDIR)/test_con_str_vec.c $(UNITY)
+	$(CC) $(TSANCFLAGS) -o $@ $^
+
+$(TESTDIR)/test_worker.tsan: $(TESTDIR)/test_worker.c $(UNITY)
+	$(CC) $(TSANCFLAGS) -o $@ $^
+
+tsan: $(TESTDIR)/test_con_str_vec.tsan $(TESTDIR)/test_worker.tsan
+	@echo "--- test_con_str_vec (TSan) ---"
+	@$(TESTDIR)/test_con_str_vec.tsan
+	@echo "--- test_worker (TSan) ---"
+	@$(TESTDIR)/test_worker.tsan
+
 clean:
 	rm -f $(TARGET) $(TARGET).debug $(OBJS) $(DEPFILES) \
-	      $(TESTDIR)/test_con_str_vec $(TESTDIR)/test_worker
+	      $(TESTDIR)/test_con_str_vec $(TESTDIR)/test_worker \
+	      $(TESTDIR)/test_con_str_vec.tsan $(TESTDIR)/test_worker.tsan

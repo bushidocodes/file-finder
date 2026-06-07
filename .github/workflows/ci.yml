@@ -26,9 +26,4 @@ jobs:
         run: make debug
 
       - name: Run unit tests under ThreadSanitizer
-        run: |
-          gcc-14 -std=c23 -Wall -Wextra -O0 -g -pthread -fsanitize=thread \
-              -Iinclude -Itests/unity \
-              tests/test_con_str_vec.c tests/unity/unity.c \
-              -o tests/test_con_str_vec_tsan
-          ./tests/test_con_str_vec_tsan
+        run: make tsan

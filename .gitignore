@@ -3,5 +3,6 @@ file-finder.debug
 src/*.o
 src/*.d
 tests/test_con_str_vec
-tests/test_con_str_vec_tsan
+tests/test_con_str_vec.tsan
 tests/test_worker
+tests/test_worker.tsan

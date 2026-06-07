@@ -1,10 +1,10 @@
 /* POSIX.1-2024 */
 #define _POSIX_C_SOURCE 202311L
 
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "globals.h"
 
@@ -16,13 +16,19 @@ shell_dump(void)
 	funlockfile(stdout);
 }
 
-void *
-shell_main([[maybe_unused]] void *argument)
+static void
+print_prompt(void)
 {
 	flockfile(stdout);
 	printf(">> ");
 	fflush(stdout);
 	funlockfile(stdout);
+}
+
+void *
+shell_main([[maybe_unused]] void *argument)
+{
+	print_prompt();
 
 	char   *line = nullptr;
 	size_t  len  = 0;
@@ -42,10 +48,7 @@ shell_main([[maybe_unused]] void *argument)
 			funlockfile(stdout);
 		}
 
-		flockfile(stdout);
-		printf(">> ");
-		fflush(stdout);
-		funlockfile(stdout);
+		print_prompt();
 
 		free(line);
 		line = nullptr;
