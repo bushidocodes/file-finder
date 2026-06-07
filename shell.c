@@ -13,12 +13,9 @@
 extern struct con_str_vec matches;
 
 static void
-print_line(char *s) { puts(s); }
-
-void
 shell_dump()
 {
-	con_str_vec_foreach_del(&matches, print_line);
+	con_str_vec_foreach_del(&matches, con_str_vec_puts);
 }
 
 void *

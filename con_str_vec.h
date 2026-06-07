@@ -100,3 +100,6 @@ con_str_vec_foreach_del(struct con_str_vec *self, con_str_vec_foreach_cb cb)
 	con_str_vec_foreach_del_nolock(self, cb);
 	pthread_mutex_unlock(&self->lock);
 }
+
+static inline void
+con_str_vec_puts(char *s) { puts(s); }
