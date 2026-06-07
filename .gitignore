@@ -2,3 +2,6 @@ file-finder
 file-finder.debug
 src/*.o
 src/*.d
+tests/test_con_str_vec
+tests/test_con_str_vec_tsan
+tests/test_worker
