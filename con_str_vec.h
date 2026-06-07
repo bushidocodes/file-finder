@@ -37,10 +37,14 @@ con_str_vec_init(struct con_str_vec *self, size_t capacity)
 	return 0;
 }
 
+/*
+ * Must be called only after all threads that access this vector have
+ * been joined or cancelled — no concurrent access is possible at that
+ * point, so no lock is taken.
+ */
 static inline void
 con_str_vec_destroy(struct con_str_vec *self)
 {
-	pthread_mutex_lock(&self->lock);
 	for (size_t i = 0; i < self->length; i++) {
 		free(self->buffer[i]);
 		self->buffer[i] = NULL;
@@ -49,7 +53,6 @@ con_str_vec_destroy(struct con_str_vec *self)
 	self->buffer   = NULL;
 	self->length   = 0;
 	self->capacity = 0;
-	pthread_mutex_unlock(&self->lock);
 	pthread_mutex_destroy(&self->lock);
 }
 

@@ -39,7 +39,7 @@ main(int argc, char **argv)
 
 	struct worker_args wargs = {
 		.root_dir   = argv[1],
-		.substrings = &argv[2],
+		.substrings = (const char *const *)&argv[2],
 		.count      = (size_t)(argc - 2),
 	};
 
@@ -93,6 +93,6 @@ main(int argc, char **argv)
 
 	con_str_vec_destroy(&matches);
 
-	/* worker signals failure by exiting with (void*)(intptr_t)-1 */
-	exit(worker_retval == (void *)(intptr_t)-1 ? EXIT_FAILURE : EXIT_SUCCESS);
+	/* worker signals failure by returning (void*)(intptr_t)-1 */
+	return worker_retval == (void *)(intptr_t)-1 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
