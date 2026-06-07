@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <dirent.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +39,8 @@ search_filenames(char *dir_path, char *substring)
 			char *copy = strdup(entry->d_name);
 			if (copy == NULL) {
 				perror("strdup");
-				exit(EXIT_FAILURE);
+				closedir(dir);
+				pthread_exit((void *)(intptr_t)-1);
 			}
 
 			int rc = con_str_vec_push(&matches, copy);
