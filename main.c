@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <dirent.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,12 +116,12 @@ main(int argc, char **argv)
 	pthread_cancel(dumper);
 	pthread_join(dumper, NULL);
 
-	int worker_failed = 0;
+	bool worker_failed = false;
 	for (size_t i = 0; i < substrings_len; i++) {
 		pthread_cancel(workers[i]);
 		void *retval = NULL;
 		pthread_join(workers[i], &retval);
-		if (retval == (void *)(intptr_t)-1) worker_failed = 1;
+		if (retval == (void *)(intptr_t)-1) worker_failed = true;
 	}
 
 	matches_free();
