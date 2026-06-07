@@ -2,12 +2,15 @@
 
 A multi-threaded command-line tool that searches a directory tree for files whose names contain one or more substrings, reporting matches interactively as they are found.
 
-## Building
+## Building and testing
 
 Requires GCC and POSIX pthreads (Linux / macOS).
 
 ```
-make
+make          # release binary
+make test     # run unit tests (Unity)
+make debug    # ThreadSanitizer build → file-finder.debug
+make install  # copy to $(PREFIX)/bin  (default: /usr/local)
 ```
 
 ## Usage
