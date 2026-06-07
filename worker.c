@@ -15,11 +15,14 @@
 extern char              *root_directory;
 extern struct con_str_vec matches;
 
+static void closedir_cleanup(void *dir) { closedir((DIR *)dir); }
+
 static inline void
 search_filenames(char *dir_path, char *substring)
 {
 	DIR *dir = opendir(dir_path);
 	if (dir == NULL) return;
+	pthread_cleanup_push(closedir_cleanup, dir);
 
 	struct dirent *entry;
 
@@ -37,7 +40,6 @@ search_filenames(char *dir_path, char *substring)
 			char *copy = strdup(entry->d_name);
 			if (copy == NULL) {
 				perror("strdup");
-				closedir(dir);
 				pthread_exit((void *)(intptr_t)-1);
 			}
 
@@ -50,7 +52,7 @@ search_filenames(char *dir_path, char *substring)
 		}
 	}
 
-	closedir(dir);
+	pthread_cleanup_pop(1);
 }
 
 void *
