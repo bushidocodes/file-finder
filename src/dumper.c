@@ -3,11 +3,10 @@
 
 /* bool / true / false are C23 keywords — no <stdbool.h> needed. */
 #include <assert.h>
+#include <pthread.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
-
-#include <pthread.h>
 
 #include "globals.h"
 

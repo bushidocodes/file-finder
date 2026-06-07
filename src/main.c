@@ -2,11 +2,11 @@
    earlier versions fall back to POSIX 2008 behaviour. */
 #define _POSIX_C_SOURCE 202311L
 
-#include <errno.h>
 #include <dirent.h>
+#include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 
 #include "worker.h"
 #include "dumper.h"
