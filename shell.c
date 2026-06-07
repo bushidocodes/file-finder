@@ -53,4 +53,5 @@ shell_main(void *argument)
 	free(line);
 
 	pthread_exit(NULL);
+	return NULL;
 }

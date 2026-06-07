@@ -63,4 +63,5 @@ worker_main(void *argument)
 	search_filenames(root_directory, substring);
 
 	pthread_exit(NULL);
+	return NULL;
 }
