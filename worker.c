@@ -30,7 +30,7 @@ search_filenames(char *dir_path, char *substring)
 
 		if (entry->d_type == DT_DIR) {
 			char joined_path[513] = { 0 };
-			snprintf(joined_path, 512, "%s/%s", dir_path, entry->d_name);
+			snprintf(joined_path, sizeof(joined_path), "%s/%s", dir_path, entry->d_name);
 			search_filenames(joined_path, substring);
 		}
 
