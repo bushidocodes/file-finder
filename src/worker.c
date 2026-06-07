@@ -1,4 +1,5 @@
-#define _POSIX_C_SOURCE 200809
+/* POSIX.1-2024 */
+#define _POSIX_C_SOURCE 202311L
 #define _DEFAULT_SOURCE
 
 #include <assert.h>
@@ -19,13 +20,13 @@ static void closedir_cleanup(void *dir) { closedir((DIR *)dir); }
 
 /*
  * Allocate and return "dir/name".  Calls pthread_exit on allocation
- * failure so the caller never receives a NULL — cleanup handlers
+ * failure so the caller never receives a nullptr — cleanup handlers
  * registered at that point will still fire normally.
  */
 static char *
 make_path(const char *dir, const char *name)
 {
-	char *path = NULL;
+	char *path = nullptr;
 	if (asprintf(&path, "%s/%s", dir, name) < 0) {
 		perror("asprintf");
 		pthread_exit((void *)(intptr_t)-1);
@@ -37,7 +38,7 @@ static void
 search_filenames(const char *dir_path, const char *const *substrings, size_t count)
 {
 	DIR *dir = opendir(dir_path);
-	if (dir == NULL) {
+	if (dir == nullptr) {
 		/* Permission denied on subdirectories is normal; report anything else */
 		if (errno != EACCES && errno != EPERM)
 			perror(dir_path);
@@ -47,7 +48,7 @@ search_filenames(const char *dir_path, const char *const *substrings, size_t cou
 
 	struct dirent *entry;
 
-	while ((entry = readdir(dir)) != NULL) {
+	while ((entry = readdir(dir)) != nullptr) {
 		/* skip . and .. */
 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
 			continue;
@@ -73,7 +74,7 @@ search_filenames(const char *dir_path, const char *const *substrings, size_t cou
 			pthread_cleanup_pop(1); /* free(joined_path) */
 		} else {
 			for (size_t i = 0; i < count; i++) {
-				if (strstr(entry->d_name, substrings[i]) == NULL) continue;
+				if (strstr(entry->d_name, substrings[i]) == nullptr) continue;
 
 				char *copy = make_path(dir_path, entry->d_name);
 				if (con_str_vec_push(&matches, copy) != 0) {
@@ -95,10 +96,10 @@ worker_main(void *argument)
 {
 	struct worker_args *args = (struct worker_args *)argument;
 
-	assert(args->root_dir != NULL);
+	assert(args->root_dir != nullptr);
 	assert(args->count > 0);
 
 	search_filenames(args->root_dir, args->substrings, args->count);
 
-	return NULL;
+	return nullptr;
 }

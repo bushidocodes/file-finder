@@ -2,7 +2,7 @@
  * Unit tests for con_str_vec — the thread-safe growable string vector.
  *
  * Build:
- *   gcc -std=c11 -Wall -Wextra -pthread -Iinclude -Itests/unity \
+ *   gcc-14 -std=c23 -Wall -Wextra -pthread -Iinclude -Itests/unity \
  *       tests/test_con_str_vec.c tests/unity/unity.c -o tests/test_con_str_vec
  */
 #define _POSIX_C_SOURCE 200809
@@ -68,7 +68,7 @@ void test_destroy_zeroes_struct_fields(void)
     TEST_ASSERT_EQUAL_size_t(0, vec.length);
     TEST_ASSERT_EQUAL_size_t(0, vec.capacity);
     /* Re-init so tearDown doesn't double-destroy */
-    con_str_vec_init(&vec, 0);
+    (void)con_str_vec_init(&vec, 0);
 }
 
 void test_destroy_empty_vec_no_crash(void)
@@ -76,7 +76,7 @@ void test_destroy_empty_vec_no_crash(void)
     /* tearDown calls destroy again — ensure it's idempotent after an empty init */
     con_str_vec_destroy(&vec);
     /* Re-init so tearDown is happy */
-    con_str_vec_init(&vec, 0);
+    (void)con_str_vec_init(&vec, 0);
 }
 
 /* ------------------------------------------------------------------ */
@@ -86,7 +86,7 @@ void test_destroy_empty_vec_no_crash(void)
 void test_resize_grows(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 4);
+    (void)con_str_vec_init(&v, 4);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_resize(&v, 16));
     TEST_ASSERT_EQUAL_size_t(16, v.capacity);
     TEST_ASSERT_NOT_NULL(v.buffer);
@@ -96,10 +96,10 @@ void test_resize_grows(void)
 void test_resize_shrinks(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 16);
+    (void)con_str_vec_init(&v, 16);
     /* Push two items so length stays 2 after shrink */
-    con_str_vec_push(&v, strdup("a"));
-    con_str_vec_push(&v, strdup("b"));
+    (void)con_str_vec_push(&v, strdup("a"));
+    (void)con_str_vec_push(&v, strdup("b"));
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_resize(&v, 4));
     TEST_ASSERT_EQUAL_size_t(4,  v.capacity);
     TEST_ASSERT_EQUAL_size_t(2,  v.length);
@@ -109,7 +109,7 @@ void test_resize_shrinks(void)
 void test_resize_same_capacity_is_noop(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 4);
+    (void)con_str_vec_init(&v, 4);
     char **before = v.buffer;
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_resize(&v, 4));
     /* Implementation guards with capacity != capacity, so no realloc */
@@ -125,7 +125,7 @@ void test_resize_same_capacity_is_noop(void)
 void test_grow_from_zero_capacity(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 0);
+    (void)con_str_vec_init(&v, 0);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_grow(&v));
     TEST_ASSERT_EQUAL_size_t(1, v.capacity);
     con_str_vec_destroy(&v);
@@ -134,7 +134,7 @@ void test_grow_from_zero_capacity(void)
 void test_grow_doubles_capacity(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 1);
+    (void)con_str_vec_init(&v, 1);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_grow(&v));
     TEST_ASSERT_EQUAL_size_t(2, v.capacity);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_grow(&v));
@@ -157,7 +157,7 @@ void test_push_single_element(void)
 void test_push_triggers_grow(void)
 {
     struct con_str_vec v;
-    con_str_vec_init(&v, 1);
+    (void)con_str_vec_init(&v, 1);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_push(&v, strdup("first")));
     /* Capacity is full — next push must grow */
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_push(&v, strdup("second")));
@@ -183,7 +183,7 @@ void test_push_many_elements(void)
 void test_push_stores_pointer_directly(void)
 {
     char *s = strdup("owner_test");
-    con_str_vec_push(&vec, s);
+    (void)con_str_vec_push(&vec, s);
     /* vec must store the exact pointer, not a copy */
     TEST_ASSERT_EQUAL_PTR(s, vec.buffer[0]);
 }
@@ -214,9 +214,9 @@ static void sequence_cb(const char *s)
 void test_foreach_del_calls_cb_for_each_element(void)
 {
     g_cb_count = 0;
-    con_str_vec_push(&vec, strdup("x"));
-    con_str_vec_push(&vec, strdup("y"));
-    con_str_vec_push(&vec, strdup("z"));
+    (void)con_str_vec_push(&vec, strdup("x"));
+    (void)con_str_vec_push(&vec, strdup("y"));
+    (void)con_str_vec_push(&vec, strdup("z"));
     con_str_vec_foreach_del(&vec, counting_cb);
     TEST_ASSERT_EQUAL_INT(3, g_cb_count);
     TEST_ASSERT_EQUAL_size_t(0, vec.length);
@@ -225,9 +225,9 @@ void test_foreach_del_calls_cb_for_each_element(void)
 void test_foreach_del_passes_correct_strings(void)
 {
     g_seq_count = 0;
-    con_str_vec_push(&vec, strdup("a"));
-    con_str_vec_push(&vec, strdup("b"));
-    con_str_vec_push(&vec, strdup("c"));
+    (void)con_str_vec_push(&vec, strdup("a"));
+    (void)con_str_vec_push(&vec, strdup("b"));
+    (void)con_str_vec_push(&vec, strdup("c"));
     con_str_vec_foreach_del(&vec, sequence_cb);
     TEST_ASSERT_EQUAL_INT(3, g_seq_count);
     TEST_ASSERT_EQUAL_STRING("a", g_seq_received[0]);
@@ -237,8 +237,8 @@ void test_foreach_del_passes_correct_strings(void)
 
 void test_foreach_del_resets_length_not_capacity(void)
 {
-    con_str_vec_push(&vec, strdup("p"));
-    con_str_vec_push(&vec, strdup("q"));
+    (void)con_str_vec_push(&vec, strdup("p"));
+    (void)con_str_vec_push(&vec, strdup("q"));
     size_t cap_before = vec.capacity;
     con_str_vec_foreach_del(&vec, counting_cb);
     TEST_ASSERT_EQUAL_size_t(0, vec.length);
@@ -249,8 +249,8 @@ void test_foreach_del_resets_length_not_capacity(void)
 void test_foreach_del_nolock_same_behaviour(void)
 {
     g_cb_count = 0;
-    con_str_vec_push(&vec, strdup("1"));
-    con_str_vec_push(&vec, strdup("2"));
+    (void)con_str_vec_push(&vec, strdup("1"));
+    (void)con_str_vec_push(&vec, strdup("2"));
     con_str_vec_foreach_del_nolock(&vec, counting_cb);
     TEST_ASSERT_EQUAL_INT(2, g_cb_count);
     TEST_ASSERT_EQUAL_size_t(0, vec.length);
@@ -266,7 +266,7 @@ void test_foreach_del_on_empty_vec(void)
 
 void test_push_after_drain_works(void)
 {
-    con_str_vec_push(&vec, strdup("first"));
+    (void)con_str_vec_push(&vec, strdup("first"));
     con_str_vec_foreach_del(&vec, counting_cb);
     TEST_ASSERT_EQUAL_size_t(0, vec.length);
     /* Push again after drain — must succeed */
@@ -277,7 +277,7 @@ void test_push_after_drain_works(void)
 
 void test_foreach_del_nulls_freed_slots(void)
 {
-    con_str_vec_push(&vec, strdup("slot0"));
+    (void)con_str_vec_push(&vec, strdup("slot0"));
     con_str_vec_foreach_del(&vec, counting_cb);
     /* Implementation nulls buffer[i] after free — verify */
     TEST_ASSERT_NULL(vec.buffer[0]);
@@ -296,7 +296,7 @@ static void *push_thread(void *arg)
     char buf[32];
     for (int i = 0; i < PUSHES_PER_THREAD; i++) {
         snprintf(buf, sizeof(buf), "item");
-        con_str_vec_push(v, strdup(buf));
+        (void)con_str_vec_push(v, strdup(buf));
     }
     return NULL;
 }

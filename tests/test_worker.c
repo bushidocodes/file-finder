@@ -6,10 +6,10 @@
  * this file defines its own `matches` global.
  *
  * Build:
- *   gcc -std=c11 -Wall -Wextra -pthread -Iinclude -Itests/unity \
+ *   gcc-14 -std=c23 -Wall -Wextra -pthread -Iinclude -Itests/unity \
  *       tests/test_worker.c tests/unity/unity.c -o tests/test_worker
  */
-#define _POSIX_C_SOURCE 200809
+#define _POSIX_C_SOURCE 202311L
 #define _DEFAULT_SOURCE
 
 /* Pull in search_filenames (static) and worker_main without linking main.c */
