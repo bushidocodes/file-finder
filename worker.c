@@ -44,9 +44,13 @@ search_filenames(char *dir_path, char *substring)
 		}
 
 		if (entry->d_type == DT_DIR) {
-			char joined_path[513] = { 0 };
-			snprintf(joined_path, sizeof(joined_path), "%s/%s", dir_path, entry->d_name);
+			char *joined_path = NULL;
+			if (asprintf(&joined_path, "%s/%s", dir_path, entry->d_name) < 0) {
+				perror("asprintf");
+				pthread_exit((void *)(intptr_t)-1);
+			}
 			search_filenames(joined_path, substring);
+			free(joined_path);
 		} else if (strstr(entry->d_name, substring) != NULL) {
 			char *copy = strdup(entry->d_name);
 			if (copy == NULL) {
