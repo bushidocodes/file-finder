@@ -13,19 +13,21 @@
 extern struct con_str_vec matches;
 
 static void
-print_line(char *s) { puts(s); }
-
-void
 shell_dump()
 {
-	con_str_vec_foreach_del(&matches, print_line);
+	flockfile(stdout);
+	con_str_vec_foreach_del(&matches, con_str_vec_puts);
+	funlockfile(stdout);
 }
 
 void *
 shell_main(void *argument)
 {
 	(void)argument;
+	flockfile(stdout);
 	printf(">> ");
+	fflush(stdout);
+	funlockfile(stdout);
 
 	char   *line  = NULL;
 	size_t  len   = 0;
@@ -41,12 +43,16 @@ shell_main(void *argument)
 		} else if (strcmp(line, "exit") == 0) {
 			break;
 		} else {
+			flockfile(stdout);
 			printf("Unknown Command: '%s'\n", line);
 			printf("Valid Commands: dump, exit\n");
+			funlockfile(stdout);
 		}
 
+		flockfile(stdout);
 		printf(">> ");
 		fflush(stdout);
+		funlockfile(stdout);
 
 		free(line);
 		line = NULL;
@@ -55,4 +61,5 @@ shell_main(void *argument)
 	free(line);
 
 	pthread_exit(NULL);
+	return NULL;
 }

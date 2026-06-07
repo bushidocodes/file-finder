@@ -3,10 +3,13 @@
 
 #include <assert.h>
 #include <dirent.h>
+#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "con_str_vec.h"
@@ -14,11 +17,14 @@
 extern char              *root_directory;
 extern struct con_str_vec matches;
 
+static void closedir_cleanup(void *dir) { closedir((DIR *)dir); }
+
 static inline void
 search_filenames(char *dir_path, char *substring)
 {
 	DIR *dir = opendir(dir_path);
 	if (dir == NULL) return;
+	pthread_cleanup_push(closedir_cleanup, dir);
 
 	struct dirent *entry;
 
@@ -28,17 +34,28 @@ search_filenames(char *dir_path, char *substring)
 			continue;
 		}
 
-		if (entry->d_type == DT_DIR) {
-			char joined_path[513] = { 0 };
-			snprintf(joined_path, 512, "%s/%s", dir_path, entry->d_name);
-			search_filenames(joined_path, substring);
+		if (entry->d_type == DT_UNKNOWN) {
+			struct stat st;
+			if (fstatat(dirfd(dir), entry->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0) {
+				if (S_ISDIR(st.st_mode))      entry->d_type = DT_DIR;
+				else if (S_ISLNK(st.st_mode)) entry->d_type = DT_LNK;
+				else                           entry->d_type = DT_REG;
+			}
 		}
 
-		if (strstr(entry->d_name, substring) != NULL) {
+		if (entry->d_type == DT_DIR) {
+			char *joined_path = NULL;
+			if (asprintf(&joined_path, "%s/%s", dir_path, entry->d_name) < 0) {
+				perror("asprintf");
+				pthread_exit((void *)(intptr_t)-1);
+			}
+			search_filenames(joined_path, substring);
+			free(joined_path);
+		} else if (strstr(entry->d_name, substring) != NULL) {
 			char *copy = strdup(entry->d_name);
 			if (copy == NULL) {
 				perror("strdup");
-				exit(EXIT_FAILURE);
+				pthread_exit((void *)(intptr_t)-1);
 			}
 
 			int rc = con_str_vec_push(&matches, copy);
@@ -50,7 +67,7 @@ search_filenames(char *dir_path, char *substring)
 		}
 	}
 
-	closedir(dir);
+	pthread_cleanup_pop(1);
 }
 
 void *
@@ -63,4 +80,5 @@ worker_main(void *argument)
 	search_filenames(root_directory, substring);
 
 	pthread_exit(NULL);
+	return NULL;
 }
