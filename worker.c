@@ -3,11 +3,13 @@
 
 #include <assert.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "con_str_vec.h"
@@ -30,6 +32,15 @@ search_filenames(char *dir_path, char *substring)
 		// Skip links, and . and ..
 		if (entry->d_type == DT_LNK || strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
 			continue;
+		}
+
+		if (entry->d_type == DT_UNKNOWN) {
+			struct stat st;
+			if (fstatat(dirfd(dir), entry->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0) {
+				if (S_ISDIR(st.st_mode))      entry->d_type = DT_DIR;
+				else if (S_ISLNK(st.st_mode)) entry->d_type = DT_LNK;
+				else                           entry->d_type = DT_REG;
+			}
 		}
 
 		if (entry->d_type == DT_DIR) {
