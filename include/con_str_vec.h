@@ -93,6 +93,7 @@ con_str_vec_push(struct con_str_vec *self, char *elem)
 	return 0;
 }
 
+/* Caller must hold self->lock.  Frees every element and resets length to 0. */
 static inline void
 con_str_vec_foreach_del_nolock(struct con_str_vec *self, con_str_vec_foreach_cb cb)
 {
