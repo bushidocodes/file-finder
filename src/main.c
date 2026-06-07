@@ -1,4 +1,6 @@
-#define _POSIX_C_SOURCE 200809
+/* POSIX.1-2024 (IEEE Std 1003.1-2024).  glibc 2.40+ honours this value;
+   earlier versions fall back to POSIX 2008 behaviour. */
+#define _POSIX_C_SOURCE 202311L
 
 #include <errno.h>
 #include <dirent.h>
@@ -14,13 +16,14 @@
 
 struct con_str_vec matches;
 
-#define DUMPER_QUANTUM_SECS 1
+/* How often (seconds) the dumper thread flushes pending matches. */
+constexpr int DUMPER_QUANTUM_SECS = 1;
 
 static void
 validate_root_directory(const char *dir)
 {
 	DIR *root = opendir(dir);
-	if (root == NULL) {
+	if (root == nullptr) {
 		perror(dir);
 		exit(EXIT_FAILURE);
 	}
@@ -49,7 +52,7 @@ main(int argc, char **argv)
 	}
 
 	pthread_t worker;
-	int rc = pthread_create(&worker, NULL, worker_main, &wargs);
+	int rc = pthread_create(&worker, nullptr, worker_main, &wargs);
 	if (rc) {
 		errno = rc;
 		perror("pthread_create");
@@ -59,36 +62,36 @@ main(int argc, char **argv)
 
 	pthread_t dumper;
 	int quantum = DUMPER_QUANTUM_SECS;
-	rc = pthread_create(&dumper, NULL, dumper_main, &quantum);
+	rc = pthread_create(&dumper, nullptr, dumper_main, &quantum);
 	if (rc) {
 		errno = rc;
 		perror("pthread_create");
 		pthread_cancel(worker);
-		pthread_join(worker, NULL);
+		pthread_join(worker, nullptr);
 		con_str_vec_destroy(&matches);
 		exit(EXIT_FAILURE);
 	}
 
 	pthread_t shell;
-	rc = pthread_create(&shell, NULL, shell_main, NULL);
+	rc = pthread_create(&shell, nullptr, shell_main, nullptr);
 	if (rc) {
 		errno = rc;
 		perror("pthread_create");
 		pthread_cancel(dumper);
-		pthread_join(dumper, NULL);
+		pthread_join(dumper, nullptr);
 		pthread_cancel(worker);
-		pthread_join(worker, NULL);
+		pthread_join(worker, nullptr);
 		con_str_vec_destroy(&matches);
 		exit(EXIT_FAILURE);
 	}
 
-	pthread_join(shell, NULL);
+	pthread_join(shell, nullptr);
 
 	pthread_cancel(dumper);
-	pthread_join(dumper, NULL);
+	pthread_join(dumper, nullptr);
 
 	pthread_cancel(worker);
-	void *worker_retval = NULL;
+	void *worker_retval = nullptr;
 	pthread_join(worker, &worker_retval);
 
 	con_str_vec_destroy(&matches);

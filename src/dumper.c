@@ -1,5 +1,8 @@
+/* POSIX.1-2024 */
+#define _POSIX_C_SOURCE 202311L
+
+/* bool / true / false are C23 keywords — no <stdbool.h> needed. */
 #include <assert.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 

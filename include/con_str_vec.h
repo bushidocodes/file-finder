@@ -14,20 +14,20 @@ struct con_str_vec {
 
 typedef void (*con_str_vec_foreach_cb)(const char *);
 
-static inline int
+[[nodiscard]] static inline int
 con_str_vec_init(struct con_str_vec *self, size_t capacity)
 {
 	if (capacity == 0) {
-		self->buffer = NULL;
+		self->buffer = nullptr;
 	} else {
 		self->buffer = calloc(capacity, sizeof(char *));
-		if (self->buffer == NULL) return -1;
+		if (self->buffer == nullptr) return -1;
 	}
 
 	self->length   = 0;
 	self->capacity = capacity;
 
-	int rc = pthread_mutex_init(&self->lock, NULL);
+	int rc = pthread_mutex_init(&self->lock, nullptr);
 	if (rc != 0) {
 		free(self->buffer);
 		errno = rc;
@@ -47,35 +47,35 @@ con_str_vec_destroy(struct con_str_vec *self)
 {
 	for (size_t i = 0; i < self->length; i++) {
 		free(self->buffer[i]);
-		self->buffer[i] = NULL;
+		self->buffer[i] = nullptr;
 	}
 	free(self->buffer);
-	self->buffer   = NULL;
+	self->buffer   = nullptr;
 	self->length   = 0;
 	self->capacity = 0;
 	pthread_mutex_destroy(&self->lock);
 }
 
-static inline int
+[[nodiscard]] static inline int
 con_str_vec_resize(struct con_str_vec *self, size_t capacity)
 {
 	if (self->capacity != capacity) {
 		char **temp = realloc(self->buffer, sizeof(char *) * capacity);
-		if (temp == NULL) return -1;
+		if (temp == nullptr) return -1;
 		self->buffer   = temp;
 		self->capacity = capacity;
 	}
 	return 0;
 }
 
-static inline int
+[[nodiscard]] static inline int
 con_str_vec_grow(struct con_str_vec *self)
 {
 	size_t capacity = self->capacity == 0 ? 1 : self->capacity * 2;
 	return con_str_vec_resize(self, capacity);
 }
 
-static inline int
+[[nodiscard]] static inline int
 con_str_vec_push(struct con_str_vec *self, char *elem)
 {
 	pthread_mutex_lock(&self->lock);
@@ -99,7 +99,7 @@ con_str_vec_foreach_del_nolock(struct con_str_vec *self, con_str_vec_foreach_cb 
 	for (size_t i = 0; i < self->length; i++) {
 		cb(self->buffer[i]);
 		free(self->buffer[i]);
-		self->buffer[i] = NULL;
+		self->buffer[i] = nullptr;
 	}
 	self->length = 0;
 }

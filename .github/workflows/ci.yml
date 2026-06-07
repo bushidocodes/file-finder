@@ -7,14 +7,14 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & test (Ubuntu)
+    name: Build & test (Ubuntu / GCC 14 / C23)
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get install -y gcc
+      - name: Install GCC 14
+        run: sudo apt-get install -y gcc-14
 
       - name: Build release binary
         run: make
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run unit tests under ThreadSanitizer
         run: |
-          gcc -std=c11 -Wall -Wextra -O0 -g -pthread -fsanitize=thread \
+          gcc-14 -std=c23 -Wall -Wextra -O0 -g -pthread -fsanitize=thread \
               -Iinclude -Itests/unity \
               tests/test_con_str_vec.c tests/unity/unity.c \
               -o tests/test_con_str_vec_tsan

@@ -1,4 +1,5 @@
-#define _POSIX_C_SOURCE 200809
+/* POSIX.1-2024 */
+#define _POSIX_C_SOURCE 202311L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +9,7 @@
 #include "globals.h"
 
 static void
-shell_dump()
+shell_dump(void)
 {
 	flockfile(stdout);
 	con_str_vec_foreach_del(&matches, con_str_vec_puts);
@@ -16,15 +17,14 @@ shell_dump()
 }
 
 void *
-shell_main(void *argument)
+shell_main([[maybe_unused]] void *argument)
 {
-	(void)argument;
 	flockfile(stdout);
 	printf(">> ");
 	fflush(stdout);
 	funlockfile(stdout);
 
-	char   *line = NULL;
+	char   *line = nullptr;
 	size_t  len  = 0;
 	ssize_t nread;
 	while ((nread = getline(&line, &len, stdin)) != -1) {
@@ -48,9 +48,9 @@ shell_main(void *argument)
 		funlockfile(stdout);
 
 		free(line);
-		line = NULL;
+		line = nullptr;
 	}
 
 	free(line);
-	return NULL;
+	return nullptr;
 }
