@@ -59,6 +59,11 @@ con_str_vec_destroy(struct con_str_vec *self)
 [[nodiscard]] static inline int
 con_str_vec_resize(struct con_str_vec *self, size_t capacity)
 {
+	if (capacity < self->length) {
+		/* Refuse to shrink below the number of live elements. */
+		errno = EINVAL;
+		return -1;
+	}
 	if (self->capacity != capacity) {
 		char **temp = realloc(self->buffer, sizeof(char *) * capacity);
 		if (temp == nullptr) return -1;
