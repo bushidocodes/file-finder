@@ -118,6 +118,24 @@ void test_resize_same_capacity_is_noop(void)
     con_str_vec_destroy(&v);
 }
 
+void test_resize_fails_below_length(void)
+{
+    struct con_str_vec v;
+    (void)con_str_vec_init(&v, 4);
+    (void)con_str_vec_push(&v, strdup("a"));
+    (void)con_str_vec_push(&v, strdup("b"));
+    (void)con_str_vec_push(&v, strdup("c"));
+    /* length is 3 — shrinking to 2 must fail with EINVAL */
+    errno = 0;
+    int rc = con_str_vec_resize(&v, 2);
+    TEST_ASSERT_EQUAL_INT(-1, rc);
+    TEST_ASSERT_EQUAL_INT(EINVAL, errno);
+    /* State must be unchanged */
+    TEST_ASSERT_EQUAL_size_t(3, v.length);
+    TEST_ASSERT_EQUAL_size_t(4, v.capacity);
+    con_str_vec_destroy(&v);
+}
+
 /* ------------------------------------------------------------------ */
 /* Group 4: grow                                                       */
 /* ------------------------------------------------------------------ */
@@ -139,6 +157,22 @@ void test_grow_doubles_capacity(void)
     TEST_ASSERT_EQUAL_size_t(2, v.capacity);
     TEST_ASSERT_EQUAL_INT(0, con_str_vec_grow(&v));
     TEST_ASSERT_EQUAL_size_t(4, v.capacity);
+    con_str_vec_destroy(&v);
+}
+
+void test_grow_at_size_max_returns_enomem(void)
+{
+    /* Manually set capacity to SIZE_MAX to exercise the overflow guard.
+     * grow() checks capacity before calling resize, so no realloc fires. */
+    struct con_str_vec v;
+    (void)con_str_vec_init(&v, 1);
+    v.capacity = SIZE_MAX;
+    errno = 0;
+    int rc = con_str_vec_grow(&v);
+    TEST_ASSERT_EQUAL_INT(-1, rc);
+    TEST_ASSERT_EQUAL_INT(ENOMEM, errno);
+    /* Restore real capacity so destroy frees the actual 1-pointer allocation */
+    v.capacity = 1;
     con_str_vec_destroy(&v);
 }
 
@@ -336,10 +370,12 @@ int main(void)
     RUN_TEST(test_resize_grows);
     RUN_TEST(test_resize_shrinks);
     RUN_TEST(test_resize_same_capacity_is_noop);
+    RUN_TEST(test_resize_fails_below_length);
 
     /* grow */
     RUN_TEST(test_grow_from_zero_capacity);
     RUN_TEST(test_grow_doubles_capacity);
+    RUN_TEST(test_grow_at_size_max_returns_enomem);
 
     /* push */
     RUN_TEST(test_push_single_element);

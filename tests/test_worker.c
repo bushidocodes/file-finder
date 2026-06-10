@@ -332,6 +332,86 @@ void test_matches_accumulates_across_calls(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* Group 6: search semantics                                           */
+/* ------------------------------------------------------------------ */
+
+void test_case_sensitive_search(void)
+{
+    touch("Hello_world.c");
+    touch("hello_world.c");
+    const char *subs[] = { "Hello" };
+    run_worker(subs, 1);
+    TEST_ASSERT_EQUAL_size_t(1, matches.length);
+    TEST_ASSERT_TRUE(matches_basename("Hello_world.c"));
+    TEST_ASSERT_FALSE(matches_basename("hello_world.c"));
+}
+
+void test_match_by_extension(void)
+{
+    touch("main.c");
+    touch("utils.c");
+    touch("readme.txt");
+    const char *subs[] = { ".c" };
+    run_worker(subs, 1);
+    TEST_ASSERT_EQUAL_size_t(2, matches.length);
+    TEST_ASSERT_TRUE(matches_basename("main.c"));
+    TEST_ASSERT_TRUE(matches_basename("utils.c"));
+    TEST_ASSERT_FALSE(matches_basename("readme.txt"));
+}
+
+void test_single_char_substring(void)
+{
+    touch("a.txt");
+    touch("b.txt");
+    touch("c.txt");
+    const char *subs[] = { "b" };
+    run_worker(subs, 1);
+    TEST_ASSERT_EQUAL_size_t(1, matches.length);
+    TEST_ASSERT_TRUE(matches_basename("b.txt"));
+}
+
+void test_filename_with_spaces(void)
+{
+    touch("my file.txt");
+    touch("other.txt");
+    const char *subs[] = { "my file" };
+    run_worker(subs, 1);
+    TEST_ASSERT_EQUAL_size_t(1, matches.length);
+    TEST_ASSERT_TRUE(matches_basename("my file.txt"));
+}
+
+void test_filename_exactly_equals_substring(void)
+{
+    /* strstr("needle", "needle") != nullptr — exact name is a valid match */
+    touch("needle");
+    const char *subs[] = { "needle" };
+    run_worker(subs, 1);
+    TEST_ASSERT_EQUAL_size_t(1, matches.length);
+    TEST_ASSERT_TRUE(matches_basename("needle"));
+}
+
+void test_nonexistent_root_returns_null_no_matches(void)
+{
+    /* opendir on a missing directory returns NULL with ENOENT.
+     * search_filenames prints to stderr but does not abort; worker_main
+     * should return NULL (not WORKER_FAILURE) and add no matches. */
+    char nodir[512];
+    snprintf(nodir, sizeof(nodir), "%s/doesnotexist", tmpdir);
+
+    struct worker_args args = {
+        .root_dir   = nodir,
+        .substrings = (const char *const[]){ "anything" },
+        .count      = 1,
+    };
+    pthread_t t;
+    TEST_ASSERT_EQUAL_INT(0, pthread_create(&t, nullptr, worker_main, &args));
+    void *retval = WORKER_FAILURE; /* sentinel — must be overwritten */
+    TEST_ASSERT_EQUAL_INT(0, pthread_join(t, &retval));
+    TEST_ASSERT_NULL(retval);
+    TEST_ASSERT_EQUAL_size_t(0, matches.length);
+}
+
+/* ------------------------------------------------------------------ */
 /* main                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -367,6 +447,14 @@ int main(void)
     /* worker_main contract */
     RUN_TEST(test_worker_main_returns_null_on_success);
     RUN_TEST(test_matches_accumulates_across_calls);
+
+    /* search semantics */
+    RUN_TEST(test_case_sensitive_search);
+    RUN_TEST(test_match_by_extension);
+    RUN_TEST(test_single_char_substring);
+    RUN_TEST(test_filename_with_spaces);
+    RUN_TEST(test_filename_exactly_equals_substring);
+    RUN_TEST(test_nonexistent_root_returns_null_no_matches);
 
     return UNITY_END();
 }
