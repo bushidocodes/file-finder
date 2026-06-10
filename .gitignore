@@ -1,7 +1,7 @@
 file-finder
 file-finder.debug
-src/*.o
-src/*.d
+*.o
+*.d
 tests/test_con_str_vec
 tests/test_con_str_vec.tsan
 tests/test_worker

@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -71,7 +72,19 @@ con_str_vec_resize(struct con_str_vec *self, size_t capacity)
 [[nodiscard]] static inline int
 con_str_vec_grow(struct con_str_vec *self)
 {
-	size_t capacity = self->capacity == 0 ? 1 : self->capacity * 2;
+	size_t capacity;
+	if (self->capacity == 0) {
+		capacity = 1;
+	} else if (self->capacity > SIZE_MAX / 2) {
+		/* Doubling would overflow; cap at SIZE_MAX */
+		if (self->capacity == SIZE_MAX) {
+			errno = ENOMEM;
+			return -1;
+		}
+		capacity = SIZE_MAX;
+	} else {
+		capacity = self->capacity * 2;
+	}
 	return con_str_vec_resize(self, capacity);
 }
 
