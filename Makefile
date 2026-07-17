@@ -15,7 +15,7 @@ TESTCFLAGS = -std=c23 -Wall -Wextra -O0 -g -pthread -I$(INCDIR) -I$(TESTDIR)/uni
 TSANCFLAGS = -std=c23 -Wall -Wextra -O0 -g -pthread -fsanitize=thread \
              -I$(INCDIR) -I$(TESTDIR)/unity
 
-.PHONY: all clean debug install test tsan
+.PHONY: all clean debug install test tsan asan
 
 all: $(TARGET)
 
@@ -71,3 +71,20 @@ clean:
 	rm -f $(TARGET) $(TARGET).debug $(OBJS) $(DEPFILES) \
 	      $(TESTDIR)/test_con_str_vec $(TESTDIR)/test_worker \
 	      $(TESTDIR)/test_con_str_vec.tsan $(TESTDIR)/test_worker.tsan
+
+# AddressSanitizer + UndefinedBehaviorSanitizer for unit tests
+ASANCFLAGS = -std=c23 -Wall -Wextra -O0 -g -pthread -fsanitize=address,undefined \
+             -fno-omit-frame-pointer -I$(INCDIR) -I$(TESTDIR)/unity
+
+$(TESTDIR)/test_con_str_vec.asan: $(TESTDIR)/test_con_str_vec.c $(UNITY)
+	$(CC) $(ASANCFLAGS) -o $@ $^
+
+$(TESTDIR)/test_worker.asan: $(TESTDIR)/test_worker.c $(UNITY)
+	$(CC) $(ASANCFLAGS) -o $@ $^
+
+.PHONY: asan
+asan: $(TESTDIR)/test_con_str_vec.asan $(TESTDIR)/test_worker.asan
+	@echo "--- test_con_str_vec (ASan/UBSan) ---"
+	@$(TESTDIR)/test_con_str_vec.asan
+	@echo "--- test_worker (ASan/UBSan) ---"
+	@$(TESTDIR)/test_worker.asan
