@@ -30,3 +30,7 @@ jobs:
 
       - name: Run unit tests under ThreadSanitizer
         run: make tsan
+
+
+      - name: Build debug binary (ASan+UBSan)
+        run: make asan
